@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html>
- <head> 
-  <title>Human</title> 
-  <style>
-    body{
+  <!DOCTYPE html>
+  <html>
+  <head> 
+    <title>Human</title> 
+    <style>
+     body{
       margin: 0;
       overflow: hidden;
     }
@@ -13,262 +13,1228 @@
       left: 0px;
       top: 0px;
     }
-  </style> 
+
+    #video {
+      display: none; 
+      position: absolute; 
+      left 10px: 15px; 
+      bottom: 10px;
+    }
+    </style> 
   </head>
   <body>
-  <!-- JavaScript libraries -->
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.min.js"></script>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
-  <script src="assets/libs/TrackballControls.js"></script>
-  <script src="assets/libs/OBJLoader.js"></script>
-  <!-- Javascript code that runs our Three.js examples --> 
-  <script>
-    // once everything is loaded, we run our Three.js stuff.
-    $(function () {
+    <!-- JavaScript libraries -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
+    <script src="assets/libs/TrackballControls.js"></script>
+    <script src="assets/libs/OBJLoader.js"></script>
+    <script src="assets/libs/keyframe.js"></script>
+    <script src="assets/libs/tween.min.js"></script> 
 
-      var stats = initStats();
+    <video id="videoLiver" src="assets/movies/IlFegato.mp4" controls="true" autoplay="true"></video> 
+    <video id="videoKidneys" src="assets/movies/IReni.mp4" controls="true" autoplay="true"></video>
+    <!-- Javascript code that runs our Three.js examples --> 
+    <script>
+      // once everything is loaded, we run our Three.js stuff.
+      $(function () {
+        var $videoLiver = $('#videoLiver');
+        $videoLiver.hide();
+        var videoLiver = $videoLiver[0];
 
-      // create a scene, that will hold all our elements such as objects, cameras and lights.
-      var scene = new THREE.Scene();
+        var $videoKidneys = $('#videoKidneys');
+        $videoKidneys.hide();
+        var videoKidneys = $videoKidneys[0];
 
-      // create a camera, which defines where we're looking at.
-      var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var stats = initStats();
 
-      // create trackball controls
-      var trackballControls = new THREE.TrackballControls(camera);
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
 
-      // create a render and set the size
-      var webGLRenderer = new THREE.WebGLRenderer();
-      webGLRenderer.setClearColor(new THREE.Color(0xeeeeee, 1.0));
-      webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
 
-      // position and point the camera to the center of the scene
-      camera.position.set(-30,40,50);
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
+        // create trackball controls
+        var trackballControls = new THREE.TrackballControls(camera);
 
-      // add spotlights
-      var spotLight1 = new THREE.SpotLight(0xffffff);
-      spotLight1.position.set(-30, 40, 500);
-      spotLight1.intensity = 1;
-      scene.add(spotLight1);
+        // create a render and set the size
+        var webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0xeeeeee, 1.0));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
 
-      var spotLight2 = new THREE.SpotLight(0xffffff);
-      spotLight2.position.set(30, -40, -500);
-      spotLight2.intensity = 1;
-      scene.add(spotLight2);
+        // position and point the camera to the center of the scene
+        camera.position.set(0,-520,200);
+        camera.lookAt(new THREE.Vector3(0, 0, 1));
 
-      // add the output of the renderer to the html element
-      $('body').append(webGLRenderer.domElement);
+        var ambiColor = "#404040";
+        var ambientLight = new THREE.AmbientLight(ambiColor);
+        ambientLight.castShadow = true;
+        scene.add(ambientLight);
 
-      // call the render function
-      var step = 0;
+        //create floor
+        var floorTex = THREE.ImageUtils.loadTexture('assets/models/floor1.jpg');
+        floorTex.wrapS = THREE.RepeatWrapping;
+        floorTex.wrapT = THREE.RepeatWrapping;
+        floorTex.repeat.set( 4, 4 );
+        var plane = new THREE.Mesh(
+          new THREE.BoxGeometry(620, 600, 10, 0), 
+          new THREE.MeshPhongMaterial({color: 0x3c3c3c, map: floorTex})
+          );
+        plane.position.z = -3.5;
+        //plane.rotation.x = -0.5 * Math.PI;
+        scene.add(plane);
 
-      // setup the control gui
-      var controls = new function () {};
+        //create walls
+        var wallTex = THREE.ImageUtils.loadTexture('assets/models/wall1.jpg');
+        wallTex.wrapS = THREE.RepeatWrapping;
+        wallTex.wrapT = THREE.RepeatWrapping;
+        wallTex.repeat.set( 2,1);
+        var wall = new THREE.Mesh(
+          new THREE.BoxGeometry(610, 300, 10, 0), 
+          new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: wallTex})
+          );
+        //plane.position.z = -9.5;
+        wall.rotation.x = Math.PI/2;
+        wall.position.set(5,295,151.5);
+        scene.add(wall);
 
-      var gui = new dat.GUI();
-      var objHuman = new THREE.Object3D();
+        var wall2 = new THREE.Mesh(
+          new THREE.BoxGeometry(600, 300, 10, 0), 
+          new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: wallTex})
+          );
+        //plane.position.z = -9.5;
+        wall2.rotation.x = Math.PI/2;
+        wall2.rotation.y = Math.PI/2;
+        wall2.position.set(-305,0,151.5);
+        scene.add(wall2);
 
-      var Sound = function ( sources) {
-        var audio = document.createElement( 'audio' );
-        for ( var i = 0; i < sources.length; i ++ ) {
+        // add spotlights
+        var intensityLight = 2;
+        var spotLight1 = new THREE.SpotLight(0xffffff);
+        spotLight1.position.set(-30, 40, 400);
+        spotLight1.intensity = intensityLight;
+        scene.add(spotLight1);
+
+        var spotLight2 = new THREE.SpotLight(0xffffff);
+        spotLight2.position.set(30, -40, -400);
+        spotLight2.intensity = intensityLight;
+        scene.add(spotLight2);
+
+        var spotLight3 = new THREE.SpotLight(0xffffff);
+        spotLight3.position.set(0,-2020,200);
+        spotLight3.intensity = intensityLight/4;
+        scene.add(spotLight3);
+
+        // add the output of the renderer to the html element
+        $('body').append(webGLRenderer.domElement);
+
+        // call the render function
+        var step = 0;
+
+        // setup the control gui
+        var controls = new function () {};
+
+        var gui = new dat.GUI();
+        var objHuman = new THREE.Object3D();
+        
+
+        
+
+        var Sound = function ( sources) {
+          var audio = document.createElement( 'audio' );
+          for ( var i = 0; i < sources.length; i ++ ) {
             var source = document.createElement( 'source' );
             source.src = sources[ i ];
             audio.appendChild( source );
-        }
-        this.play = function () {
+          }
+          this.play = function () {
             audio.play();
-            audio.volume = 1
-        }
-        this.pause = function() {
+            audio.volume = 1;
+            audio.loop = true;
+          }
+          this.playNoLoop = function () {
+            audio.play();
+            audio.volume = 1;
+            audio.loop = false;
+          }
+          this.pause = function() {
             audio.pause();
-        }
-        this.stop = function() {
+          }
+          this.stop = function() {
             audio.pause();
             audio.currentTime = 0;
+          }
         }
-      }
 
-      function load(path, colorNum, callback) {
 
-        var loader = new THREE.OBJLoader();
-        loader.load(path, function (obj) {
 
-          global_o = obj;
-          var multiMaterial = [
+        function load(path, colorNum, callback) {
+
+          var loader = new THREE.OBJLoader();
+          loader.load(path, function (obj) {
+
+            global_o = obj;
+            var multiMaterial = [
             new THREE.MeshPhongMaterial({color: colorNum, side: THREE.DoubleSide, shading: THREE.FlatShading}),
             new THREE.MeshBasicMaterial({wireframe: false, overdraw: true, color: 0xffffff, side: THREE.DoubleSide})
             ];
 
-          var objPart = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
-            
-          callback(objPart);
+            var objPart = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+
+            callback(objPart);
+          });
+
+        }
+
+        function loadAndTransparent(path, colorNum, callback) {
+
+          var loader = new THREE.OBJLoader();
+          loader.load(path, function (obj) {
+            var multiMaterial = [
+            new THREE.MeshPhongMaterial({color: colorNum, side: THREE.DoubleSide, shading: THREE.FlatShading, transparent:true, opacity:0.2}),
+            new THREE.MeshBasicMaterial({wireframe: false, overdraw: true, color: 0xffffff, side: THREE.DoubleSide, transparent:true, opacity:0.4})
+            ];
+
+            var objPart = THREE.SceneUtils.createMultiMaterialObject(obj.children[0].geometry, multiMaterial);
+
+            callback(objPart);
+          });
+        }
+
+        var human = new THREE.Object3D();
+        loadAndTransparent('assets/models/human.obj', "#ff474a", function (obj) {
+          human.add(obj);
+          obj.scale.set(.12,.12,.12);
         });
+        objHuman.add(human);
 
-      }
+        var cns = new THREE.Object3D();
+        load('assets/models/brain_left.obj', "#967B70", function (obj) {
+          cns.add(obj);
+          obj.position.set(0,-7,189);
+          obj.scale.set(.125,.125,.125);
+        });
+        load('assets/models/brain_right.obj', "#967B70", function (obj) {
+          cns.add(obj);
+          obj.position.set(0,-7,189);
+          obj.scale.set(.125,.125,.125);
+        });
+        load('assets/models/spine.obj', "#FFFFFF", function (obj) {
+          cns.add(obj);
+          obj.scale.set(4.15,4.15,4.15);
+          obj.rotation.y=Math.PI/2;
+          obj.rotation.z=Math.PI/2;
+          obj.position.set(0,-4.5,122.5);
+        });
+        objHuman.add(cns);
 
-      function loadAndTexture(path, texture, callback) {
+
+        var eyes = new THREE.Object3D();
+        var eyeTex = THREE.ImageUtils.loadTexture('assets/models/eye-texture.jpg');
         
-        var loader = new THREE.OBJLoader();
-        loader.load(path, function (obj) {
+        var eyeSin = new THREE.Mesh(
+          new THREE.SphereGeometry( 1.2, 100, 100 ),
+          new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: eyeTex})
+          );
+        eyeSin.rotation.z=-Math.PI/2;
+        eyeSin.position.set(-3.5,-19,182);
+        
+        var eyeDes = new THREE.Mesh(
+          new THREE.SphereGeometry( 1.2, 100, 100 ),
+          new THREE.MeshPhongMaterial({color: 0xFFFFFF, map: eyeTex})
+          );
+        eyeDes.rotation.z=-Math.PI/2;
+        eyeDes.position.set(3.5,-19,182);
 
-          var texture = THREE.ImageUtils.loadTexture(texture);
-          var mat = new THREE.MeshPhongMaterial();
-          mat.map = texture;
-          obj.children[0].material = mat;
-          callback( obj );
+        eyes.add(eyeSin);
+        eyes.add(eyeDes);
+        objHuman.add(eyes);
+        
+
+        var kidneys = new THREE.Object3D();
+        load('assets/models/Kidney_left.obj', "#AA331D", function (obj) {
+          kidneys.add(obj);
+          obj.position.set(50,80,-1000);
         });
-      }
+        load('assets/models/Kidney_right.obj', "#AA331D", function (obj) {
+          kidneys.add(obj);
+          obj.position.set(50,80,-1000);
+        });
+        kidneys.scale.set(0.14,0.14,0.14);
+        kidneys.position.set(-7,-15.5,105);
+        kidneys.rotation.x=0.17;
+        kidneys.rotation.y=0.1;
+        objHuman.add(kidneys);
 
-      var human = new THREE.Object3D();
-      load('assets/models/human.obj', "#FF6347", function (obj) {
-        human.add(obj);
-        obj.scale.set(.1,.1,.1);
-      });
-      objHuman.add(human);
+        var liver = new THREE.Object3D();
+        load('assets/models/liver1.obj', "#86202B", function (obj) {
+          liver.add(obj);
+          obj.position.set(0,80,-1200);
+        });
+        load('assets/models/liver2.obj', "#86202B", function (obj) {
+          liver.add(obj);
+          obj.position.set(0,80,-1200);
+        });
+        liver.scale.set(0.14,0.14,0.14);
+        liver.position.set(2.8,-20.5,141);
+        liver.rotation.z=-0.44;
+        liver.rotation.x=0.35;
+        objHuman.add(liver);
 
-      var cns = new THREE.Object3D();
-      load('assets/models/brain_left.obj', "#967B70", function (obj) {
-        cns.add(obj);
-        obj.scale.set(.1,.1,.1);
-      });
-      load('assets/models/brain_right.obj', "#967B70", function (obj) {
-        cns.add(obj);
-        obj.scale.set(.1,.1,.1);
-      });
-      load('assets/models/spine.obj', "#FFFFFF", function (obj) {
-        cns.add(obj);
-        obj.scale.set(2,2,2);
-        obj.position.set(10,10,0);
-      });
-      cns.position.y = 50;
-      objHuman.add(cns);
+        var polydactyly = new THREE.Object3D();
+        load('assets/models/hand.obj', "#FF6347", function (obj) {
+          polydactyly.add(obj);
+        });
+        load('assets/models/finger.obj', "#FF6347", function (obj) {
+          polydactyly.add(obj);
+          obj.scale.set(.05,.06,.05);       
+          obj.rotation.x = -Math.PI/2;
+          obj.rotation.y = -Math.PI/2;
+          obj.rotation.z = -Math.PI/10;
+          obj.position.set(.13,.04,.27);
+        });
+        polydactyly.scale.set(33,33,33);
+        polydactyly.position.set(32,-23,93);
+        polydactyly.rotation.y=Math.PI;
+        polydactyly.rotation.x=-Math.PI/9;
+        objHuman.add(polydactyly);
 
-      var eyes = new THREE.Object3D();
-      loadAndTexture('assets/models/eye.obj','assets/models/eye-texture.jpg', function (obj) {
-        eyes.add(obj);
-        obj.scale.set(.1,.1,.1);
-        obj.position.set(50,50,0);
-      });
+        var tongue = new THREE.Object3D();
+        load('assets/models/tongue.obj', "#FF6347", function (obj) {
+          tongue.add(obj);
+        });
+        tongue.scale.set(1.5,1.5,1.5);
+        tongue.position.set(0,-16,175.5);
+        tongue.rotation.x=-Math.PI/2;
+        objHuman.add(tongue);
 
-      loadAndTexture('assets/models/eye.obj','assets/models/eye-texture.jpg', function (obj) {
-        eyes.add(obj);
-        obj.scale.set(.1,.1,.1);
-        obj.position.set(100,50,0);
-      });
-      objHuman.add(eyes);
-
-      var kidneys = new THREE.Object3D();
-      load('assets/models/Kidney_left.obj', "#AA331D", function (obj) {
-        kidneys.add(obj);
-        obj.position.set(50,80,-1000);
-      });
-      load('assets/models/Kidney_right.obj', "#AA331D", function (obj) {
-        kidneys.add(obj);
-        obj.position.set(50,80,-1000);
-      });
-      objHuman.add(kidneys);
-
-      var liver = new THREE.Object3D();
-      load('assets/models/liver1.obj', "#86202B", function (obj) {
-        liver.add(obj);
-        obj.position.set(0,80,-1200);
-      });
-      load('assets/models/liver2.obj', "#86202B", function (obj) {
-        liver.add(obj);
-        obj.position.set(0,80,-1200);
-      });
-      objHuman.add(liver);
-
-      var polydactyly = new THREE.Object3D();
-      load('assets/models/hand.obj', "#FF6347", function (obj) {
-        polydactyly.add(obj);
-      });
-      load('assets/models/finger.obj', "#FF6347", function (obj) {
-        polydactyly.add(obj);
-        obj.scale.set(.05,.06,.05);       
-        obj.rotation.x = -Math.PI/2;
-        obj.rotation.y = -Math.PI/2;
-        obj.rotation.z = -Math.PI/10;
-        obj.position.set(.13,.04,.27);
-      });
-      polydactyly.scale.set(50,50,50);
-      polydactyly.position.set(50,20,0);
-      objHuman.add(polydactyly);
-
-      var tongue = new THREE.Object3D();
-      load('assets/models/tongue.obj', "#FF6347", function (obj) {
-        tongue.add(obj);
-      });
-      tongue.scale.set(10,10,10);
-      tongue.position.set(-50,-50,0);
-      objHuman.add(tongue);
-
-      var heart = new THREE.Object3D();
-      load('assets/models/heart.obj', "#FF0000", function (obj) {
-        heart.add(obj);
-      });
-      heart.position.x = -80;
-      objHuman.add(heart);
-
-      var mti = new THREE.Object3D();
-      load('assets/models/mti.obj', "#FFFFFF", function (obj) {
-        mti.add(obj);
-      });
-      mti.position.set(-20,-50,-50);
-      mti.scale.set(10,10,10);
-      objHuman.add(mti);
-/*
-      
-
-      
-
-      load('assets/models/human.obj', function (obj) {
-        objHuman.add(obj);
-      });*/
-
-      scene.add(objHuman);
-
-      var axisHelper = new THREE.AxisHelper(10);
-      scene.add(axisHelper);
+        var heart = new THREE.Object3D();
+        load('assets/models/heart.obj', "#FF0000", function (obj) {
+          heart.add(obj);
+        });
+        heart.position.x = -80;
+        heart.scale.set(0.13,0.13,0.13);
+        heart.position.set(5,-15,138);
+        heart.rotation.x=Math.PI/2;
+        heart.rotation.z=Math.PI/12;
+        objHuman.add(heart);
 
 
-      //var audio = new Sound(['assets/sound/Siamo_fatti_cosi.mp3']);
-      //scene.add(audio);
-      
-      var controls = new function () {
+        objHuman.position.z = 9.5;
+        var xradians = objHuman.rotation.x;
+        var yradians = objHuman.rotation.y;
+        var zradians = objHuman.rotation.z;
+
+        
+
+        
+        var letto = new THREE.Object3D();
+        load('assets/models/bed_Hosp.obj', "#99CBFF", function (obj) {
+          letto.add(obj);
+        });
+        letto.rotation.x = Math.PI / 2;
+        letto.rotation.y = Math.PI;
+        letto.scale.set(1.35,1.35,1.35);
+        letto.position.set(-80,50,-1);
+        scene.add(letto);
+
+        var blackboard = new THREE.Object3D();
+        load('assets/models/board.obj', "#FFFFFF", function (obj) {
+          blackboard.add(obj);
+        });
+        blackboard.rotation.x = Math.PI / 2;
+        blackboard.scale.set(1.80,1.35,1.35);
+        blackboard.position.set(200,50,-1);
+        scene.add(blackboard);
+
+
+        var cubeGeometry = new THREE.BoxGeometry(50, 8, 2.5);
+        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        var cubeDes = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        var cubeSin = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+        // position the arrow
+        cubeDes.position.set(80,-200,10);
+        cubeSin.position.set(-80,-200,10);
+
+        // add new geometry based on the specified positions
+        var darkMaterial = new THREE.MeshBasicMaterial( { color: 0x014d4e } );
+        var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x014d4e} ); 
+        var multiMaterial = [ darkMaterial, wireframeMaterial ];
+
+        var peakSin = THREE.SceneUtils.createMultiMaterialObject(new THREE.CylinderGeometry( 0, 10, 30, 4, 4 ), multiMaterial);
+        peakSin.position.set(-107, -200, 10);
+        peakSin.rotation.z=Math.PI/2;
+        peakSin.rotation.x=Math.PI/4;
+
+         var peakDes = THREE.SceneUtils.createMultiMaterialObject(new THREE.CylinderGeometry( 0, 10, 30, 4, 4 ), multiMaterial);
+        peakDes.position.set(107, -200, 10);
+        peakDes.rotation.z=-Math.PI/2;
+        peakDes.rotation.x=Math.PI/4;
+
+
+        // add the arrow to the scene
+        scene.add(cubeDes);
+        scene.add(cubeSin);
+        scene.add(peakSin);
+        scene.add(peakDes);
+
+        var projector = new THREE.Projector();
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+
+        scene.add(objHuman);
+
+        var axisHelper = new THREE.AxisHelper(10);
+        scene.add(axisHelper);
+
+        var panelEyesGeometry = new THREE.BoxGeometry(86, 105,.5);
+        var textEyes = THREE.ImageUtils.loadTexture('assets/models/text_Eyes.png'); 
+        var panelEyesMaterial = new THREE.MeshBasicMaterial({color: "#FFFFFF", map: textEyes});
+        var panelEyes = new THREE.Mesh(panelEyesGeometry, panelEyesMaterial);
+        panelEyes.rotation.x=((Math.PI/2.295556)-Math.PI/2);
+        panelEyes.position.set(0,100,13);
+        panelEyes.scale.set(0.55,0.75,0.75);
+
+        var panelPolydactylyGeometry = new THREE.BoxGeometry(86, 105,.5);
+        var textPolydactyly = THREE.ImageUtils.loadTexture('assets/models/text_Polydactyly.png'); 
+        var panelPolydactylyMaterial = new THREE.MeshBasicMaterial({color: "#FFFFFF", map: textPolydactyly});
+        var panelPolydactyly = new THREE.Mesh(panelPolydactylyGeometry, panelPolydactylyMaterial);
+        panelPolydactyly.rotation.x=((Math.PI/2.295556)-Math.PI/2);
+        panelPolydactyly.position.set(0,100,13);
+        panelPolydactyly.scale.set(0.55,0.75,0.75);
+        
+        sferette = new Array();
+    for (i=0; i<9; i++) {
+      var sphereGeometry = new THREE.SphereGeometry(1,30,30);
+      var sphereMaterial = new THREE.MeshBasicMaterial({color: 0x0000FF, transparent: true});
+      var sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
+      sphere.position.set(0, 3, 190);
+      sferette[i]=sphere;
+    }
+
+
+
+        var textureLiver = new THREE.Texture(videoLiver);
+        textureLiver.minFilter = THREE.LinearFilter;
+        textureLiver.magFilter = THREE.LinearFilter;
+        textureLiver.format = THREE.RGBFormat;
+        textureLiver.generateMipmaps = false;
+
+        var textureKidneys = new THREE.Texture(videoKidneys);
+        textureKidneys.minFilter = THREE.LinearFilter;
+        textureKidneys.magFilter = THREE.LinearFilter;
+        textureKidneys.format = THREE.RGBFormat;
+        textureKidneys.generateMipmaps = false;
+
+        function createMesh (geom,texture) {
+          var materialArray = [];
+          materialArray.push(new THREE.MeshBasicMaterial({ color: 0x555555  }));
+          materialArray.push(new THREE.MeshBasicMaterial({ color: 0x555555  }));
+          materialArray.push(new THREE.MeshBasicMaterial({ color: 0x555555  }));
+          materialArray.push(new THREE.MeshBasicMaterial({ color: 0x555555   }));
+          materialArray.push(new THREE.MeshBasicMaterial({ map: texture }));
+          materialArray.push(new THREE.MeshBasicMaterial({ color: 0xeeee33  }));
+          var faceMaterial = new THREE.MeshFaceMaterial(materialArray);
+
+          // create a multimaterial
+          var mesh = new THREE.Mesh(geom, faceMaterial);
+
+          return mesh;
+        }  
+        var panelLiver = createMesh(new THREE.BoxGeometry(86, 105,.5),textureLiver);
+        panelLiver.rotation.x=((Math.PI/2.295556)-Math.PI/2);
+        panelLiver.position.set(0,100,13);
+        panelLiver.scale.set(0.55,0.75,0.75);
+        videoLiver.pause();
+
+
+        var panelKidneys = createMesh(new THREE.BoxGeometry(86, 105,.5),textureKidneys);
+        panelKidneys.rotation.x=((Math.PI/2.295556)-Math.PI/2);
+        panelKidneys.position.set(0,100,13);
+        panelKidneys.scale.set(0.55,0.75,0.75);
+        videoKidneys.pause();
+        //var audio = new Sound(['assets/sound/Siamo_fatti_cosi.mp3']);
+        //scene.add(audio);
+        
+        var controls = new function () {
           this.music = false;
-      };
-      
-      var audio = new Sound( [ 'assets/sound/Siamo_fatti_cosi.mp3' ]);
-      
-      gui.add(controls, 'music').onChange(function (value) {
+          this.rotate = false;
+          this.trackball = true;
+          this.heart = false;
+          this.eyes = false;
+          this.polydactyly = false;
+          this.liver = false;
+          this.kidneys = false;
+          this.tongue = false;
+          this.cns = false;
+          this.reset = false;
+        };
+        
+        //ELEMENTI DELLA GUI
+        var audio = new Sound( [ 'assets/sound/Siamo_fatti_cosi.mp3' ]);
+        var audioLingua = new Sound( [ 'assets/sound/linguaccia.mp3' ]);
+        var audioCns = new Sound( [ 'assets/sound/cnsAudio.mp3' ]);
+        
+        gui.add(controls, 'music').onChange(function (value) {
           if(value)
             audio.play();
           else
             audio.pause();
+        });
+
+        gui.add(controls, "rotate");
+
+
+        gui.add(controls, 'trackball').onChange(function (e) {
+          trackballControls.enabled = e;
+        });
+
+        gui.add(controls, 'reset').onChange(function (e) {
+            if (e) {
+              reset();
+            }
+          });
+
+        //SOTTO CARTELLA DELLA GUI PER GESTIRE LE ANIMAZIONI
+        var guiAnim = gui.addFolder('Animation');
+
+        guiAnim.add(controls, 'eyes').onChange(function (e) {
+          if (e) {
+            startAnimationEyes();
+          }
+        });
+
+        guiAnim.add(controls, 'polydactyly').onChange(function (e) {
+          if (e) {
+            startAnimationPolydactyly();
+          }
+        });
+
+        guiAnim.add(controls, 'tongue').onChange(function (e) {
+          if (e) {
+            startAnimationTongue();
+          }
+        });
+
+        guiAnim.add(controls, 'cns').onChange(function (e) {
+          if (e) {
+            startAnimationCns();
+          }
+        });
+
+        guiAnim.add(controls, 'liver').onChange(function (e) {
+          if (e) {
+            startAnimationLiver();
+          }
+        });
+
+        guiAnim.add(controls, 'kidneys').onChange(function (e) {
+          if (e) {
+            startAnimationKidneys();
+          }
+        });
+
+        guiAnim.add(controls, 'heart').onChange(function (e) {
+          if (e) {
+            startAnimationHeart();
+          }
+        });
+
+
+        // FUNZIONI CHE GESTISCONO LE ANIMAZIONI
+        
+        //animazione HEART
+        function luceSoftEPosCamera() {
+          spotLight1.intensity = .5;
+          spotLight2.intensity = .5;
+          scene.remove(ambientLight);
+
+          var animatorCamera;
+          function initAnimatorPosCamera() {
+            camera.lookAt(blackboard.position);
+            
+            animatorCamera = new KF.KeyFrameAnimator;
+            animatorCamera.init({ 
+              interps:
+                [
+                    {  
+                      keys:[0, 0.25,0.75, 1], 
+                      values:[
+                      { x:0, y:-520, z:200},
+                      { x:260, y:-520, z:200},
+                      { x:260, y:-520, z:280},
+                      { x:260, y:-250, z:280},
+                      ],
+                      target:camera.position
+                      },
+                ],
+              loop: false,
+              duration:2 * 3000,
+            });
+          }
+          initAnimatorPosCamera();
+          animatorCamera.start();
+        }
+
+        
+        function invisibili(unicoVisibile) {
+          human.traverse( function ( object ) { object.visible = false; } );
+          //ecc. se vi piace 
+          if(unicoVisibile == 'heart') {
+            heart.traverse( function ( object ) { object.visible = true; } );
+          }
+        }
+
+        function visibili() {
+          human.traverse( function ( object ) { object.visible = true; } );
+          //ecc. se vi piace 
+        }
+
+
+        var animator = null,
+        duration = 3, // sec
+        loopAnimation = false;
+
+
+        var audioCuore = new Sound( [ 'assets/sound/Battito_cardiaco1.mp3' ]);
+        function startAnimationHeart() {
+          reset();
+          gui.closed = true;
+          camera.up = new THREE.Vector3(0,0,1);
+          camera.lookAt(scene.position);
+          trackballControls.enabled = false;
+        
+          invisibili('heart');
+          audioCuore.play();
+          function initAnimatorHeart() {
+              animator = new KF.KeyFrameAnimator;
+              animator.init({ 
+                interps:
+                  [
+                      {  
+                        keys:[0, 0.5, 1], 
+                        values:[
+                        { x:0, y:-520, z:200},
+                        { x:0, y:-15, z:200},
+                        { x:5, y:-15, z:170},
+                        ],
+                        target:camera.position
+                        },
+                  ],
+                loop: loopAnimation,
+                duration:duration * 3000,
+              });
+          }
+          initAnimatorHeart();
+          animator.start();
+
+          var animator2 = null,
+          duration2 = .9, // sec
+          loopAnimation2 = true;
+
+          function initAnimatorHeart2() {
+              animator2 = new KF.KeyFrameAnimator;
+              animator2.init({ 
+                interps:
+                  [
+                      {  
+                        keys:[0, 0.5, 1], 
+                        values:[
+                        { x:0.13, y:0.13, z:0.13},
+                        { x:0.15, y:0.15, z:0.15},
+                        { x:0.13, y:0.13, z:0.13},
+                        ],
+                        target:heart.scale
+                        },
+                  ],
+                loop: loopAnimation2,
+                duration:duration2 * 1000,
+              });
+          }
+          initAnimatorHeart2();
+          animator2.start();
+
+        }
+
+        //initAnimator per EYES,POLYDACTLY, LIVER e KIDNEYS
+        function startAnimationEPLK() {
+         function initAnimatorEPLK() {
+            animator = new KF.KeyFrameAnimator;
+            animator.init({ 
+              interps:
+                [
+                    {  
+                      keys:[0, 0.25,0.75, 1], 
+                      values:[
+                      { x:0, y:-520, z:200},
+                      { x:400, y:-520, z:200},
+                      { x:400, y:-520, z:280},
+                      { x:400, y:-230, z:280},
+                      ],
+                      target:camera.position
+                      },
+
+                      {  
+                      keys:[0.75,1], 
+                      values:[
+                      { x:200, y:50, z:-1},
+                      { x:200, y:-70, z:-1},
+                      ],
+                      target:blackboard.position
+                      },
+
+                       {  
+                      keys:[0.75,1], 
+                      values:[
+                      { y: 0},
+                      { y: Math.PI/3},
+                      ],
+                      target:blackboard.rotation
+                      },
+
+                ],
+              loop: loopAnimation,
+              duration:duration * 3000,
+            });
+          }
+          initAnimatorEPLK();
+          animator.start();
+
+        }
+          
+        //animazione EYES
+        function startAnimationEyes() {
+          reset();
+          gui.closed = true;
+
+          trackballControls.enabled = false;
+
+          blackboard.add(panelEyes);
+
+          //blackboard.position.set(200,-70,-1);
+          //blackboard.rotation.y=Math.PI/4;
+
+         startAnimationEPLK(); 
+         }
+
+        //animazione POLYDACTYLY
+        function startAnimationPolydactyly() {
+          reset();
+          gui.closed = true;
+      
+          trackballControls.enabled = false;
+
+          blackboard.add(panelPolydactyly);
+
+          //blackboard.position.set(200,-70,-1);
+          //blackboard.rotation.y=0;
+         
+        startAnimationEPLK(); 
+        }
+
+        //animazione LIVER
+        function startAnimationLiver() {
+          reset();
+          gui.closed = true;
+          
+          trackballControls.enabled = false;
+
+          luceSoftEPosCamera();
+          videoLiver.play();
+          blackboard.add(panelLiver);
+
+          startAnimationEPLK(); 
+        }
+
+       //animazione KIDNEYS
+        function startAnimationKidneys() {
+          reset();
+          gui.closed = true;
+          
+          trackballControls.enabled = false;
+
+          luceSoftEPosCamera();
+          videoKidneys.play();
+          blackboard.add(panelKidneys);
+
+          startAnimationEPLK(); 
+        }
+        
+        //animazione TONGUE
+        function startAnimationTongue() { 
+          reset();
+          gui.closed = true;
+         trackballControls.enabled = false;
+         var animator = null;
+         var duration = 4; 
+         var loopAnimation = false;
+         window.setTimeout(audioLingua.playNoLoop, 11500);
+         function initAnimatorTongue() {
+          animator = new KF.KeyFrameAnimator();
+          animator.init({ 
+           interps:
+           [
+           { 
+            keys:[0, 0.05, 0.10, 0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65], 
+            values:[
+            {x:0, y:-520, z:200 },
+            {x:0, y:-520, z:210 },
+            {x:0, y:-520, z:220 },
+            {x:0, y:-500, z:220 },
+            {x:0, y:-450, z:220 },
+            {x:0, y:-400, z:220 },
+            {x:0, y:-340, z:220 },
+            {x:0, y:-280, z:220 },
+            {x:0, y:-220, z:220 },
+            {x:0, y:-150, z:220 },
+            {x:0, y:-100, z:220 },
+            {x:0, y:-50, z:220 },
+            {x:0, y:-35, z:220 },
+            {x:0, y:-35, z:230 },
+
+            ],
+            target: camera.position
+          },
+
+          { 
+            keys:[0.67,0.70,0.74,0.85,0.89,0.92], 
+            values:[
+            {x:0, y:-16, z:175.5 },
+            {x:0, y:-18.5, z:175.5 },
+            {x:0, y:-21, z:175.5 },
+            {x:0, y:-21, z:175.5 },
+            {x:0, y:-18.5, z:175.5 },
+            {x:0, y:-16, z:175.5 },
+            ],
+            target: tongue.position
+          },
+              /*{ 
+                keys:[0.74,0.85], 
+                values:[
+                  {x: play()},
+                  {x: pause()},
+                ],
+                target: audioLingua
+              },*/
+              
+              ],
+              duration: duration * 4000,
+              loop: loopAnimation,
+            });
+        }
+        initAnimatorTongue();
+        animator.start();
+        }
+        
+        
+        //animazione CNS
+        function startAnimationCns() {
+          reset();
+          gui.closed = true;
+         trackballControls.enabled = false;
+         for (i=0; i < 9; i++) {
+          scene.add(sferette[i]);
+          sferette[i].material.opacity=1;
+        }
+
+
+        var animator = null;
+        var duration = 4; 
+        var loopAnimation = false;
+        audioCns.playNoLoop();
+        function initAnimatorCns() {
+          animator = new KF.KeyFrameAnimator();
+          animator.init({ 
+           interps:
+           [
+           { 
+            keys:[0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30], 
+            values:[
+            {x:0, y:-520, z:200 },
+            {x:0, y:-420, z:200 },
+            {x:0, y:-320, z:200 },
+            {x:0, y:-220, z:200 },
+            {x:0, y:-120, z:200 },
+            {x:0, y:20, z:200 },
+            {x:0, y:100, z:350 },
+            ],
+            target: camera.position
+          },
+
+          { 
+            keys:[0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:0, y:4, z:180 },
+
+            ],
+            target: sferette[0].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[0].material
+          },
+
+          { 
+            keys:[0.35, 0.40, 0.45], 
+            values:[
+            {x:0, y:100, z:350 },
+            {x:0, y:100, z:325 },
+            {x:0, y:100, z:300 },
+
+            ],
+            target: camera.position
+          },
+
+          { 
+            keys:[0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:10, y:4, z:170 },
+
+            ],
+            target: sferette[1].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[1].material
+          },
+
+          { 
+            keys:[0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:-10, y:4, z:170 },
+
+            ],
+            target: sferette[2].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[2].material
+          },
+
+          { 
+            keys:[0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:20, y:4, z:160 },
+
+            ],
+            target: sferette[3].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[3].material
+          },
+
+          { 
+            keys:[0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:-20, y:4, z:160 },
+
+            ],
+            target: sferette[4].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[4].material
+          },
+
+          { 
+            keys:[0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.96,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:10, y:4, z:100 },
+
+            ],
+            target: sferette[5].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[5].material
+          },
+
+          { 
+            keys:[0.65,0.70,0.75,0.80,0.85,0.90,0.95,0.96,0.97,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:-10, y:4, z:100 },
+
+            ],
+            target: sferette[6].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[6].material
+          },
+
+          { 
+            keys:[0.70,0.75,0.80,0.85,0.90,0.95,0.96,0.97,0.98,0.99], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:10, y:4, z:80 },
+
+            ],
+            target: sferette[7].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[7].material
+          },
+
+          { 
+            keys:[0.75,0.80,0.85,0.90,0.95,0.96,0.97,0.98,0.99,0.995], 
+            values:[
+            {x:0, y:3, z:190 },
+            {x:0, y:3, z:180 },
+            {x:0, y:3, z:170 },
+            {x:0, y:3, z:160 },
+            {x:0, y:3, z:150 },
+            {x:0, y:0, z:140 },
+            {x:0, y:-1.5, z:130 },
+            {x:0, y:0, z:120 },
+            {x:0, y:4, z:110 },
+            {x:-10, y:4, z:80 },
+
+            ],
+            target: sferette[8].position
+          },
+
+          { 
+            keys:[1], 
+            values:[
+            {opacity: 0},
+
+            ],
+            target: sferette[8].material
+          },
+
+          ],
+          duration: duration * 4000,
+          loop: loopAnimation,
+        });
+      }
+      initAnimatorCns();
+      animator.start();
+      }
+        
+        function resetLuci() {
+          spotLight1.intensity = intensityLight;
+          spotLight2.intensity = intensityLight;
+          scene.add(ambientLight);
+        }
+
+         function reset() {
+          camera.position.set(0,-520,200);
+          camera.up = new THREE.Vector3(0,0,1);
+          camera.lookAt(scene.position);
+
+          objHuman.rotation.set(xradians,yradians,zradians);
+
+          blackboard.position.set(200,50,-1);
+          blackboard.rotation.y = 0;
+
+          trackballControls.enabled = true;
+
+          if(panelEyes !== null){
+            blackboard.remove(panelEyes);
+          }
+
+
+          if(panelPolydactyly !== null){
+            blackboard.remove(panelPolydactyly);
+          }
+
+          if(panelLiver !== null){
+            videoLiver.pause();
+            blackboard.remove(panelLiver);
+            resetLuci();
+          }
+
+          if(panelKidneys !== null){
+            videoKidneys.pause();
+            blackboard.remove(panelKidneys);
+            resetLuci();
+          }
+          
+          /*for (i=0; i <9; i++) { //non funziona per la sferetta finale se faccio l'animazione due volte
+            if (sferette[i]!==null) {
+              scene.remove(sferette[i]);
+            }
+              
+          }*/
+
+          audioCuore.stop();
+          audioCns.stop();
+          visibili();
+        }
+
+        render();
+
+        function render() {
+          stats.update();
+
+          if (videoLiver.readyState === videoLiver.HAVE_ENOUGH_DATA) {
+              if (textureLiver) textureLiver.needsUpdate = true;
+          }
+
+          if (videoKidneys.readyState === videoKidneys.HAVE_ENOUGH_DATA) {
+              if (textureKidneys) textureKidneys.needsUpdate = true;
+          }
+
+          if (controls.rotate) {
+            objHuman.rotation.z -= 0.01;
+          }
+
+          trackballControls.update();
+          TWEEN.update();
+          KF.update();
+
+          // render using requestAnimationFrame
+          requestAnimationFrame(render);
+          webGLRenderer.render(scene, camera);
+        }
+
+        function onDocumentMouseMove (event) {
+          event.preventDefault();
+
+          // map viewport coordinates in ([-1,1], [-1,1], 0.5)
+          var vector = new THREE.Vector3(( event.clientX / window.innerWidth ) * 2 - 1, -( event.clientY / window.innerHeight ) * 2 + 1, 0.5);
+          projector.unprojectVector(vector, camera);
+
+          var raycaster = new THREE.Raycaster(camera.position, 
+            vector.sub(camera.position).normalize());
+
+          var intersects1 = raycaster.intersectObjects([cubeDes]);
+          var intersects2 = raycaster.intersectObjects([cubeSin]);
+
+          if (intersects1.length > 0) {
+            //intersects[ 0 ].object.scale.set(10,10,10);
+            //intersects[ 0 ].object.position.set(100,100,100);
+            objHuman.rotation.z += Math.PI / 8;
+          }
+          if (intersects2.length > 0) {
+            //intersects[ 0 ].object.scale.set(10,10,10);
+            //intersects[ 0 ].object.position.set(100,100,100);
+            objHuman.rotation.z -= Math.PI / 8;
+          }
+        }
+
+        function initStats() {
+          var stats = new Stats();
+          stats.setMode(0); // 0: fps, 1: ms
+          $('body').append(stats.domElement);
+          return stats;
+        }
       });
-
-      render();
-
-      function render() {
-        stats.update();
-        trackballControls.update();
-
-        // render using requestAnimationFrame
-        requestAnimationFrame(render);
-        webGLRenderer.render(scene, camera);
-      }
-
-      function initStats() {
-        var stats = new Stats();
-        stats.setMode(0); // 0: fps, 1: ms
-        $('body').append(stats.domElement);
-        return stats;
-      }
-    });
   </script>  
- </body>
-</html>
+  </body>
+  </html>
