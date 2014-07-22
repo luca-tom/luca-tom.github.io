@@ -17,7 +17,7 @@
     #video {
       display: none; 
       position: absolute; 
-      left 10px: 15px; 
+      left: 15px; 
       bottom: 10px;
     }
     </style> 
@@ -47,7 +47,7 @@
         $videoKidneys.hide();
         var videoKidneys = $videoKidneys[0];
 
-        var stats = initStats();
+        //var stats = initStats();
 
         // create a scene, that will hold all our elements such as objects, cameras and lights.
         var scene = new THREE.Scene();
@@ -253,11 +253,11 @@
         
 
         var kidneys = new THREE.Object3D();
-        load('assets/models/Kidney_left.obj', "#AA331D", function (obj) {
+        load('assets/models/kidney_left.obj', "#AA331D", function (obj) {
           kidneys.add(obj);
           obj.position.set(50,80,-1000);
         });
-        load('assets/models/Kidney_right.obj', "#AA331D", function (obj) {
+        load('assets/models/kidney_right.obj', "#AA331D", function (obj) {
           kidneys.add(obj);
           obj.position.set(50,80,-1000);
         });
@@ -386,8 +386,8 @@
 
         scene.add(objHuman);
 
-        var axisHelper = new THREE.AxisHelper(10);
-        scene.add(axisHelper);
+        //var axisHelper = new THREE.AxisHelper(10);
+        //scene.add(axisHelper);
 
         var panelEyesGeometry = new THREE.BoxGeometry(86, 105,.5);
         var textEyes = THREE.ImageUtils.loadTexture('assets/models/text_Eyes.png'); 
@@ -491,52 +491,53 @@
           trackballControls.enabled = e;
         });
 
-        gui.add(controls, 'reset').onChange(function (e) {
+
+        //SOTTO CARTELLA DELLA GUI PER GESTIRE LE ANIMAZIONI
+        var guiAnim = gui.addFolder('Animation');
+
+        guiAnim.add(controls, 'RESET').onChange(function (e) {
             if (e) {
               reset();
             }
           });
 
-        //SOTTO CARTELLA DELLA GUI PER GESTIRE LE ANIMAZIONI
-        var guiAnim = gui.addFolder('Animation');
-
-        guiAnim.add(controls, 'eyes').onChange(function (e) {
+        guiAnim.add(controls, 'Eyes').onChange(function (e) {
           if (e) {
             startAnimationEyes();
           }
         });
 
-        guiAnim.add(controls, 'polydactyly').onChange(function (e) {
+        guiAnim.add(controls, 'Polydactyly').onChange(function (e) {
           if (e) {
             startAnimationPolydactyly();
           }
         });
 
-        guiAnim.add(controls, 'tongue').onChange(function (e) {
+        guiAnim.add(controls, 'Tongue').onChange(function (e) {
           if (e) {
             startAnimationTongue();
           }
         });
 
-        guiAnim.add(controls, 'cns').onChange(function (e) {
+        guiAnim.add(controls, 'Cns').onChange(function (e) {
           if (e) {
             startAnimationCns();
           }
         });
 
-        guiAnim.add(controls, 'liver').onChange(function (e) {
+        guiAnim.add(controls, 'Liver').onChange(function (e) {
           if (e) {
             startAnimationLiver();
           }
         });
 
-        guiAnim.add(controls, 'kidneys').onChange(function (e) {
+        guiAnim.add(controls, 'Kidneys').onChange(function (e) {
           if (e) {
             startAnimationKidneys();
           }
         });
 
-        guiAnim.add(controls, 'heart').onChange(function (e) {
+        guiAnim.add(controls, 'Heart').onChange(function (e) {
           if (e) {
             startAnimationHeart();
           }
@@ -1180,7 +1181,7 @@
         render();
 
         function render() {
-          stats.update();
+          //stats.update();
 
           if (videoLiver.readyState === videoLiver.HAVE_ENOUGH_DATA) {
               if (textureLiver) textureLiver.needsUpdate = true;
@@ -1228,12 +1229,12 @@
           }
         }
 
-        function initStats() {
+        /*function initStats() {
           var stats = new Stats();
           stats.setMode(0); // 0: fps, 1: ms
           $('body').append(stats.domElement);
           return stats;
-        }
+        }*/
       });
   </script>  
   </body>
